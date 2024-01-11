@@ -8,6 +8,7 @@ use reqwest::blocking::Response;
 // グローバル変数
 pub static PAPER_TOML: &str = "paper.toml";
 pub static PAPER_URL: &str = "https://api.papermc.io/v2/projects";
+static PAPER_PLUGIN_DIR: &str = "plugins";
 
 // 設定ファイルの構造体
 #[derive(Serialize,Deserialize)]
@@ -66,6 +67,15 @@ pub fn download() {
                 match paper_download(&c) {
                     Ok(_) => {},
                     Err(e) => println!("{}", e),
+                }
+                // プラグインのダウンロード
+                if c.plugins.enable {
+                    match plugin_download(&c) {
+                        Ok(_) => {},
+                        Err(e) => println!("{}", e),
+                    }
+                }else{
+                    println!("プラグインのダウンロードをスキップしました");
                 }
             },
             None => println!("パースに失敗しました"),
@@ -187,5 +197,31 @@ fn paper_download(conf: &Config) -> Result<(), String> {
         let _ = Err::<(), String>("projectが存在しません".to_string());
     }
 
+    Ok(())
+}
+
+fn plugin_download(conf: &Config) -> Result<(), String> {
+    let current_dir = std::env::current_dir().unwrap();
+    let plugins_dir = current_dir.join(PAPER_PLUGIN_DIR);
+    if !plugins_dir.exists() {
+        std::fs::create_dir(PAPER_PLUGIN_DIR).unwrap();
+    }
+
+    for p in &conf.plugins.plugin {
+        let url = &p.url;
+        let mut res: Response = reqwest::blocking::get(url).unwrap();
+        if res.status().is_success() {
+            let filename = format!("{}/{}", PAPER_PLUGIN_DIR, &p.name);
+            let mut file = std::fs::File::create(filename).unwrap();
+            let buf: Vec<u8> = vec![];
+            // ダウンロードしたファイルを書き込む
+            res.copy_to(&mut file).unwrap();
+            // ファイルに書き込む
+            file.write_all(&buf).unwrap();
+            println!("{}をダウンロードしました", &p.name);
+        } else {
+            println!("{}のダウンロードに失敗しました", &p.name);
+        }
+    }
     Ok(())
 }
