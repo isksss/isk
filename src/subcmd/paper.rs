@@ -1,9 +1,9 @@
-use serde::{Deserialize, Serialize};
-use toml;
-use std::fs;
-use std::io::Write;
 use reqwest;
 use reqwest::blocking::Response;
+use serde::{Deserialize, Serialize};
+use std::fs;
+use std::io::Write;
+use toml;
 
 // グローバル変数
 pub static PAPER_TOML: &str = "paper.toml";
@@ -11,20 +11,20 @@ pub static PAPER_URL: &str = "https://api.papermc.io/v2/projects";
 static PAPER_PLUGIN_DIR: &str = "plugins";
 
 // 設定ファイルの構造体
-#[derive(Serialize,Deserialize)]
+#[derive(Serialize, Deserialize)]
 struct Config {
-   server: Server,
-   plugins: Plugins,
+    server: Server,
+    plugins: Plugins,
 }
 
-#[derive(Serialize,Deserialize)]
+#[derive(Serialize, Deserialize)]
 struct Server {
     project: String,
     version: Option<String>,
     file: Option<String>,
 }
 
-#[derive(Serialize,Deserialize)]
+#[derive(Serialize, Deserialize)]
 struct Plugins {
     enable: bool,
     plugin: Vec<Plugin>,
@@ -47,8 +47,8 @@ struct Project {
 
 #[derive(Deserialize, Debug)]
 struct ProjectVersion {
-    project_id: String,
-    project_name: String,
+    _project_id: String,
+    _project_name: String,
     version: String,
     builds: Vec<u32>,
 }
@@ -65,19 +65,19 @@ pub fn download() {
                 show_config(&c);
                 // ダウンロード
                 match paper_download(&c) {
-                    Ok(_) => {},
+                    Ok(_) => {}
                     Err(e) => println!("{}", e),
                 }
                 // プラグインのダウンロード
                 if c.plugins.enable {
                     match plugin_download(&c) {
-                        Ok(_) => {},
+                        Ok(_) => {}
                         Err(e) => println!("{}", e),
                     }
-                }else{
+                } else {
                     println!("プラグインのダウンロードをスキップしました");
                 }
-            },
+            }
             None => println!("パースに失敗しました"),
         }
     } else {
@@ -99,12 +99,10 @@ pub fn create_config() {
             },
             plugins: Plugins {
                 enable: false,
-                plugin: vec![
-                    Plugin {
-                        name: "".to_string(),
-                        url: "".to_string(),
-                    },
-                ],
+                plugin: vec![Plugin {
+                    name: "".to_string(),
+                    url: "".to_string(),
+                }],
             },
         };
         let toml = toml::to_string(&conf).unwrap();
@@ -120,7 +118,7 @@ fn config_exists() -> bool {
     paper_toml.exists()
 }
 
-fn show_config(conf: &Config){
+fn show_config(conf: &Config) {
     println!("===== ===== ===== ===== =====");
     println!("project: {}", conf.server.project);
     match &conf.server.version {
@@ -143,7 +141,7 @@ fn show_config(conf: &Config){
 fn paper_download(conf: &Config) -> Result<(), String> {
     // projectが存在するか確認
     let url = format!("{}/{}", PAPER_URL, conf.server.project);
-    let res: Response = reqwest::blocking::get(&url).unwrap();
+    let res: Response = reqwest::blocking::get(url).unwrap();
     if res.status().is_success() {
         let project: Project = res.json().unwrap();
         println!("project: {}", project.project_name);
@@ -156,16 +154,22 @@ fn paper_download(conf: &Config) -> Result<(), String> {
         if project.versions.contains(version) {
             // ビルド番号を取得
             let url = format!("{}/{}/versions/{}", PAPER_URL, conf.server.project, version);
-            let res: Response = reqwest::blocking::get(&url).unwrap();
+            let res: Response = reqwest::blocking::get(url).unwrap();
             if res.status().is_success() {
                 let project_version: ProjectVersion = res.json().unwrap();
                 let build = project_version.builds[0];
                 println!("version: {}", project_version.version);
                 println!("build: {}", build);
                 // ダウンロード
-                let jar= format!("{}-{}-{}.jar", conf.server.project, project_version.version, build);
-                let url = format!("{}/{}/versions/{}/builds/{}/downloads/{}", PAPER_URL, conf.server.project, version, build, jar);
-                let mut res: Response = reqwest::blocking::get(&url).unwrap();
+                let jar = format!(
+                    "{}-{}-{}.jar",
+                    conf.server.project, project_version.version, build
+                );
+                let url = format!(
+                    "{}/{}/versions/{}/builds/{}/downloads/{}",
+                    PAPER_URL, conf.server.project, version, build, jar
+                );
+                let mut res: Response = reqwest::blocking::get(url).unwrap();
                 if res.status().is_success() {
                     let filename = match &conf.server.file {
                         Some(f) => f,
@@ -187,7 +191,6 @@ fn paper_download(conf: &Config) -> Result<(), String> {
                 println!("versionが存在しません");
                 let _ = Err::<(), String>("versionが存在しません".to_string());
             }
-
         } else {
             println!("versionが存在しません");
             let _ = Err::<(), String>("versionが存在しません".to_string());
