@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
 use isk::subcmd::dot;
 use isk::subcmd::paper;
+use isk::subcmd::rand;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -21,6 +22,12 @@ enum Commands {
     Dot {
         #[command(subcommand)]
         cmd: Option<DotCommands>,
+    },
+
+    #[command(about = "random")]
+    Rand {
+        #[arg(short, long, default_value = "3")]
+        num: u32,
     },
 }
 
@@ -54,6 +61,12 @@ fn main() {
             Some(DotCommands::Clone { repo }) => dot::clone_dotfiles(repo),
             None => {}
         },
-        None => {}
+        Some(Commands::Rand{num}) => {
+            rand::rand(*num);
+        }
+
+        None => {
+            println!("コマンドがありません");
+        }
     }
 }
