@@ -3,6 +3,7 @@ name = "isk"
 version = "0.1.2"
 edition = "2021"
 authors = ["isksss <104404522+isksss@users.noreply.github.com>"]
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
