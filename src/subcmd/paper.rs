@@ -246,9 +246,9 @@ pub fn run_server() {
                 Some(m) => m,
                 None => "1G",
             };
-            let opt_memory = format!("-Xmx{} -Xms{}", memory, memory);
+            let _opt_memory = format!("-Xmx{} -Xms{}", memory, memory);
             let mut cmd = std::process::Command::new("java")
-                .args([&opt_memory, "-jar", jar])
+                .args(["-jar", jar, "nogui"])
                 .spawn()
                 .expect("failed to execute process");
             println!("サーバーを起動しました");
