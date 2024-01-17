@@ -37,6 +37,8 @@ enum PaperCommands {
     Download,
     #[command(about = "create paper.toml")]
     Init,
+    #[command(about = "run server")]
+    Run,
 }
 
 #[derive(Subcommand)]
@@ -55,13 +57,14 @@ fn main() {
         Some(Commands::Paper { cmd }) => match cmd {
             Some(PaperCommands::Download) => paper::download(),
             Some(PaperCommands::Init) => paper::create_config(),
+            Some(PaperCommands::Run) => paper::run_server(),
             None => {}
         },
         Some(Commands::Dot { cmd }) => match cmd {
             Some(DotCommands::Clone { repo }) => dot::clone_dotfiles(repo),
             None => {}
         },
-        Some(Commands::Rand{num}) => {
+        Some(Commands::Rand { num }) => {
             rand::rand(*num);
         }
 

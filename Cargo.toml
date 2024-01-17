@@ -4,8 +4,10 @@ version = "0.1.3"
 edition = "2021"
 authors = ["isksss <104404522+isksss@users.noreply.github.com>"]
 license = "MIT"
+license-file = "LICENSE"
 description = "A command line tool for isksss."
 repository = "https://github.com/isksss/isk"
+exclude = [".github", ".gitignore", "tests"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -17,3 +19,9 @@ openssl = { version = "0.10", features = ["vendored"] }
 toml = "0.8.8"
 dirs = "5.0.1"
 rand = "0.8.5"
+
+[profile.dev]
+opt-level = 0
+
+[profile.release]
+opt-level = 3

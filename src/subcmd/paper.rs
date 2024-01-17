@@ -1,8 +1,8 @@
 use reqwest;
 use reqwest::blocking::Response;
 use serde::{Deserialize, Serialize};
-use std::fs;
 use std::io::Write;
+use std::{fs};
 use toml;
 
 // グローバル変数
@@ -22,6 +22,7 @@ struct Server {
     project: String,
     version: Option<String>,
     file: Option<String>,
+    memory: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -96,6 +97,7 @@ pub fn create_config() {
                 project: "paper".to_string(),
                 version: Some("1.20.2".to_string()),
                 file: Some("server.jar".to_string()),
+                memory: Some("2G".to_string()),
             },
             plugins: Plugins {
                 enable: false,
@@ -227,4 +229,41 @@ fn plugin_download(conf: &Config) -> Result<(), String> {
         }
     }
     Ok(())
+}
+
+/// papermcを実行する
+pub fn run_server() {
+    println!("サーバーを起動します");
+    let conf = parse_paper_toml();
+    match conf {
+        Some(c) => {
+            let jar = match &c.server.file {
+                Some(f) => f,
+                None => "server.jar",
+            };
+            println!("jar: {}", jar);
+            let memory = match &c.server.memory {
+                Some(m) => m,
+                None => "1G",
+            };
+            let opt_memory = format!("-Xmx{} -Xms{}", memory, memory);
+            let mut cmd = std::process::Command::new("java")
+                .args([&opt_memory, "-jar", jar])
+                .spawn()
+                .expect("failed to execute process");
+            println!("サーバーを起動しました");
+            println!("終了するにはstopを入力してください");
+            cmd.wait().unwrap();
+        }
+        None => println!("パースに失敗しました"),
+    }
+}
+
+/// paper.tomlをパースして返す
+fn parse_paper_toml() -> Option<Config> {
+    let current_dir = std::env::current_dir().unwrap();
+    let paper_toml = current_dir.join(PAPER_TOML);
+    let conf_b = fs::read_to_string(paper_toml).unwrap();
+    let conf: Option<Config> = toml::from_str(&conf_b).unwrap();
+    conf
 }
